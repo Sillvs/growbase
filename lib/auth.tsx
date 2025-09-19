@@ -8,8 +8,8 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
-  signInWithEmail: (email: string, password: string) => Promise<{ error?: any }>
-  signUpWithEmail: (email: string, password: string, name: string) => Promise<{ error?: any }>
+  signInWithEmail: (email: string, password: string) => Promise<{ error?: Error | null }>
+  signUpWithEmail: (email: string, password: string, name: string) => Promise<{ error?: Error | null }>
   signOut: () => Promise<void>
 }
 

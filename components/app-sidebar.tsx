@@ -9,7 +9,6 @@ import {
   IconFileText,
   IconInnerShadowTop,
   IconPlug,
-  IconPlus,
   IconSparkles,
 } from "@tabler/icons-react"
 
