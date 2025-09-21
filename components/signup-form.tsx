@@ -3,24 +3,34 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { GrowbaseLogo } from "@/components/growbase-logo"
 import { useAuth } from "@/hooks/use-auth"
 import { useState } from "react"
+import { supabase } from "@/lib/supabase"
 import Image from "next/image"
 
-export function LoginForm({
+export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const { signInWithGoogle } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [name, setName] = useState("")
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignUp = async () => {
     try {
       setLoading(true)
+
+      // Store the name in localStorage to use after OAuth redirect
+      if (name.trim()) {
+        localStorage.setItem('growbase_signup_name', name.trim())
+      }
+
       await signInWithGoogle()
     } catch (error) {
-      console.error('Error signing in:', error)
+      console.error('Error signing up:', error)
     } finally {
       setLoading(false)
     }
@@ -34,15 +44,27 @@ export function LoginForm({
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <GrowbaseLogo className="mb-4 h-12 w-12 text-black" />
-                <h1 className="text-2xl font-bold">Willkommen zurück</h1>
+                <h1 className="text-2xl font-bold">Konto erstellen</h1>
                 <p className="text-muted-foreground text-balance">
-                  Melden Sie sich bei Ihrem Growbase-Konto an
+                  Erstellen Sie Ihr Growbase-Konto
                 </p>
               </div>
 
+              <div className="grid gap-3">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Max Mustermann"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+
               <Button
-                onClick={handleGoogleSignIn}
-                disabled={loading}
+                onClick={handleGoogleSignUp}
+                disabled={loading || !name.trim()}
                 className="w-full"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
@@ -51,13 +73,13 @@ export function LoginForm({
                     fill="currentColor"
                   />
                 </svg>
-                {loading ? "Anmelden..." : "Mit Google anmelden"}
+                {loading ? "Registrieren..." : "Mit Google registrieren"}
               </Button>
 
               <div className="text-center text-sm">
-                Noch kein Konto?{" "}
-                <a href="/signup" className="underline underline-offset-4">
-                  Registrieren
+                Bereits ein Konto?{" "}
+                <a href="/login" className="underline underline-offset-4">
+                  Anmelden
                 </a>
               </div>
             </div>
@@ -65,7 +87,7 @@ export function LoginForm({
           <div className="bg-muted relative hidden md:block">
             <Image
               src="https://images.pexels.com/photos/355288/pexels-photo-355288.jpeg"
-              alt="Login Bild"
+              alt="Registrierung Bild"
               fill
               className="object-cover dark:brightness-[0.2] dark:grayscale"
               priority
