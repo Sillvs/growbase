@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GrowbaseLogo } from "@/components/growbase-logo"
+import Image from "next/image"
 
 export function LoginForm({
   className,
@@ -89,10 +90,12 @@ export function LoginForm({
             </div>
           </form>
           <div className="bg-muted relative hidden md:block">
-            <img
+            <Image
               src="https://images.pexels.com/photos/355288/pexels-photo-355288.jpeg"
               alt="Login Bild"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              fill
+              className="object-cover dark:brightness-[0.2] dark:grayscale"
+              priority
             />
           </div>
         </CardContent>
