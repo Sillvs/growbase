@@ -57,7 +57,10 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   }
 
   const handleSubmit = async () => {
-    if (!user) return
+    if (!user) {
+      console.error("No user found")
+      return
+    }
 
     setLoading(true)
     try {
@@ -83,7 +86,9 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
         targetLanguage: formData.targetLanguage,
       }
 
-      const webhookResponse = await fetch("https://primary-production-423a.up.railway.app/webhook-test/10e45c62-e08a-4e9a-89c2-ffc4fa017e63", {
+      console.log("Sending webhook data:", webhookData)
+
+      const webhookResponse = await fetch("https://primary-production-423a.up.railway.app/webhook/10e45c62-e08a-4e9a-89c2-ffc4fa017e63", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,11 +96,14 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
         body: JSON.stringify(webhookData),
       })
 
-      if (!supabaseError) {
-        setStep(4) // Go to step 4
-      }
+      console.log("Webhook response status:", webhookResponse.status)
+
+      // Always go to step 4, even if there are errors
+      setStep(4)
     } catch (error) {
       console.error("Error submitting onboarding data:", error)
+      // Still go to step 4 even on error
+      setStep(4)
     } finally {
       setLoading(false)
     }
