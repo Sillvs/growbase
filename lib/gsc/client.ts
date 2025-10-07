@@ -3,6 +3,14 @@ import type { GSCMetrics, GSCTimeSeriesData, GSCPageData } from './types'
 
 export type { GSCMetrics, GSCTimeSeriesData, GSCPageData }
 
+interface GSCAPIRow {
+  keys: string[]
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
 async function refreshAccessToken(refreshToken: string): Promise<string> {
   const clientId = process.env.GOOGLE_CLIENT_ID
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
@@ -156,7 +164,7 @@ export async function getGSCTimeSeriesData(
       return []
     }
 
-    return data.rows.map((row: any) => ({
+    return data.rows.map((row: GSCAPIRow) => ({
       date: row.keys[0],
       clicks: row.clicks || 0,
       impressions: row.impressions || 0,
@@ -209,7 +217,7 @@ export async function getGSCTopPages(
       return []
     }
 
-    return data.rows.map((row: any) => ({
+    return data.rows.map((row: GSCAPIRow) => ({
       page: row.keys[0],
       clicks: row.clicks || 0,
       impressions: row.impressions || 0,

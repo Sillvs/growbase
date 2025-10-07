@@ -71,8 +71,13 @@ export async function GET(request: NextRequest) {
     const sitesData = await sitesResponse.json()
     const sites = sitesData.siteEntry || []
 
+    interface GSCSite {
+      siteUrl: string
+      permissionLevel: string
+    }
+
     // Use the first verified site, or the first site if none are verified
-    const verifiedSite = sites.find((site: any) => site.permissionLevel === 'siteOwner')
+    const verifiedSite = sites.find((site: GSCSite) => site.permissionLevel === 'siteOwner')
     const siteUrl = verifiedSite?.siteUrl || sites[0]?.siteUrl
 
     if (!siteUrl) {
