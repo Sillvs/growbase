@@ -8,16 +8,39 @@ import { Label } from "@/components/ui/label"
 import { GrowbaseLogo } from "@/components/growbase-logo"
 import { useAuth } from "@/hooks/use-auth"
 import { useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { signInWithGoogle } = useAuth()
+  const { signUpWithEmail, signInWithGoogle } = useAuth()
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setLoading(true)
+      setError("")
+      const data = await signUpWithEmail(email, password, name)
+
+      // If user needs email confirmation, redirect to verification page
+      if (data.user && !data.session) {
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+      }
+    } catch (error: unknown) {
+      console.error('Error signing up:', error)
+      setError(error instanceof Error ? error.message : 'Registrierung fehlgeschlagen')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleGoogleSignUp = async () => {
     try {
@@ -40,7 +63,7 @@ export function SignupForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <div className="p-6 md:p-8">
+          <form className="p-6 md:p-8" onSubmit={handleEmailSignUp}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <GrowbaseLogo className="mb-4 h-12 w-12 text-black" />
@@ -49,6 +72,12 @@ export function SignupForm({
                   Erstellen Sie Ihr Growbase-Konto
                 </p>
               </div>
+
+              {error && (
+                <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md">
+                  {error}
+                </div>
+              )}
 
               <div className="grid gap-3">
                 <Label htmlFor="name">Name</Label>
@@ -62,9 +91,45 @@ export function SignupForm({
                 />
               </div>
 
+              <div className="grid gap-3">
+                <Label htmlFor="email">E-Mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="max@beispiel.de"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="password">Passwort</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Mindestens 6 Zeichen"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? "Registrieren..." : "Registrieren"}
+              </Button>
+
+              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                <span className="bg-card text-muted-foreground relative z-10 px-2">
+                  Oder fortfahren mit
+                </span>
+              </div>
+
               <Button
+                type="button"
+                variant="outline"
                 onClick={handleGoogleSignUp}
-                disabled={loading || !name.trim()}
+                disabled={loading}
                 className="w-full"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
@@ -83,7 +148,7 @@ export function SignupForm({
                 </a>
               </div>
             </div>
-          </div>
+          </form>
           <div className="bg-muted relative hidden md:block">
             <Image
               src="https://images.pexels.com/photos/355288/pexels-photo-355288.jpeg"

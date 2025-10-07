@@ -1,43 +1,80 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
 import { ProtectedRoute } from "@/components/protected-route"
+import { OnboardingDialog } from "@/components/onboarding-dialog"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/hooks/use-auth"
 
 import data from "./data.json"
 
 export default function Page() {
+  const { user } = useAuth()
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      // For now, show onboarding for all users
+      // In a real app, you'd check if user has completed onboarding
+      const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${user.id}`)
+      if (!hasCompletedOnboarding) {
+        setShowOnboarding(true)
+      }
+    }
+  }, [user])
+
+  const handleOnboardingComplete = () => {
+    if (user) {
+      localStorage.setItem(`onboarding_completed_${user.id}`, 'true')
+    }
+    setShowOnboarding(false)
+  }
+
   return (
     <ProtectedRoute>
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>
-          <SiteHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <SectionCards />
-                <div className="px-4 lg:px-6">
-                  <ChartAreaInteractive />
+      <div className={showOnboarding ? 'blur-sm' : ''}>
+        <SidebarProvider
+          style={
+            {
+              "--sidebar-width": "calc(var(--spacing) * 72)",
+              "--header-height": "calc(var(--spacing) * 12)",
+            } as React.CSSProperties
+          }
+        >
+          <AppSidebar variant="inset" />
+          <SidebarInset>
+            <SiteHeader />
+            <div className="flex flex-1 flex-col">
+              <div className="@container/main flex flex-1 flex-col gap-2">
+                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                  <SectionCards />
+                  <div className="px-4 lg:px-6">
+                    <ChartAreaInteractive />
+                  </div>
+                  <DataTable data={data} />
                 </div>
-                <DataTable data={data} />
               </div>
             </div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
+
+      <OnboardingDialog
+        open={showOnboarding}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleOnboardingComplete()
+          }
+        }}
+      />
     </ProtectedRoute>
   )
 }
