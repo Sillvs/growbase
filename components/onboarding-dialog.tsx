@@ -61,7 +61,20 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
 
     setLoading(true)
     try {
-      // Send webhook data
+      // Create empty row in Supabase Company_DNA table (only user_id)
+      const { supabase } = await import("@/lib/supabase")
+      const { data: insertData, error: supabaseError } = await supabase
+        .from('company_dna')
+        .insert({
+          user_id: user.id
+        })
+        .select()
+
+      if (supabaseError) {
+        console.error("Supabase error:", supabaseError)
+      }
+
+      // Send webhook data for workflow processing
       const webhookData = {
         userId: user.id,
         companyName: formData.companyName,
@@ -78,23 +91,8 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
         body: JSON.stringify(webhookData),
       })
 
-      // Save to Supabase Company_DNA table
-      const { supabase } = await import("@/lib/supabase")
-      const { error: supabaseError } = await supabase
-        .from('company_dna')
-        .upsert({
-          user_id: user.id,
-          company_name: formData.companyName,
-          company_website: formData.companyWebsite,
-          target_market: formData.targetMarket,
-          target_language: formData.targetLanguage,
-          description: null
-        })
-
-      if (webhookResponse.ok && !supabaseError) {
-        setStep(4) // Go to step 4 instead of closing
-      } else {
-        console.error("Failed to submit onboarding data:", supabaseError)
+      if (!supabaseError) {
+        setStep(4) // Go to step 4
       }
     } catch (error) {
       console.error("Error submitting onboarding data:", error)
@@ -130,20 +128,15 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
           />
         </div>
         <div className="space-y-6 px-6 pb-6 pt-3">
-          <DialogHeader className="text-center">
-            {step === 1 && (
-              <div className="flex flex-col items-center text-center mb-4">
-                <GrowbaseLogo className="mb-4 h-12 w-12 text-black" />
-              </div>
-            )}
-            <DialogTitle className="text-center">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-left">
               {step === 1 && "Willkommen bei Growbase"}
-              {step === 2 && "Unternehmensangaben"}
+              {step === 2 && ""}
               {step === 3 && "Zielmarkt & Sprache"}
               {step === 4 && "Google Search Console verbinden"}
             </DialogTitle>
             {step === 1 && (
-              <div className="text-center space-y-3 mt-4">
+              <div className="text-left space-y-3 mt-4">
                 <p className="text-sm text-muted-foreground">
                   Mit dem Tool ermöglichen Sie es Ihrem Unternehmen, endlich in Zeiten von KI gefunden zu werden und Ihre Nutzer von KI-Systemen auf Ihr Unternehmen aufmerksam zu machen.
                 </p>
@@ -172,7 +165,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
                   onChange={(e) => handleWebsiteChange(e.target.value)}
                   className="w-full"
                 />
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-xs text-muted-foreground">
                   https:// wird automatisch hinzugefügt
                 </p>
               </div>
@@ -215,7 +208,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
           )}
 
           {step === 4 && (
-            <div className="space-y-4 text-center">
+            <div className="space-y-4 text-left">
               <p className="text-sm text-muted-foreground">
                 Wir bereiten im Hintergrund alles für Sie vor. In der Zwischenzeit können Sie aber gerne schon mal Ihre Google Search Console verbinden.
               </p>
