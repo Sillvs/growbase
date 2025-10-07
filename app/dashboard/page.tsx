@@ -13,21 +13,65 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/hooks/use-auth"
+import type { GSCMetrics, GSCTimeSeriesData, GSCPageData } from "@/lib/gsc/types"
 
 import data from "./data.json"
 
 export default function Page() {
   const { user } = useAuth()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [gscMetrics, setGscMetrics] = useState<GSCMetrics | null>(null)
+  const [gscTimeSeries, setGscTimeSeries] = useState<GSCTimeSeriesData[]>([])
+  const [gscTopPages, setGscTopPages] = useState<GSCPageData[]>([])
+  const [hasGSCConnection, setHasGSCConnection] = useState(false)
+  const [loadingGSC, setLoadingGSC] = useState(true)
 
   useEffect(() => {
     if (user) {
-      // For now, show onboarding for all users
-      // In a real app, you'd check if user has completed onboarding
+      // Check if user has completed onboarding
       const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${user.id}`)
       if (!hasCompletedOnboarding) {
         setShowOnboarding(true)
       }
+
+      // Check GSC connection and fetch data
+      const fetchGSCData = async () => {
+        try {
+          setLoadingGSC(true)
+
+          // Check if user has GSC connected
+          const statusResponse = await fetch('/api/gsc/status')
+          const { connected } = await statusResponse.json()
+          setHasGSCConnection(connected)
+
+          if (connected) {
+            // Calculate date range (last 28 days)
+            const endDate = new Date()
+            const startDate = new Date()
+            startDate.setDate(startDate.getDate() - 28)
+
+            const formatDate = (date: Date) => date.toISOString().split('T')[0]
+
+            // Fetch all GSC data
+            const dataResponse = await fetch(
+              `/api/gsc/data?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`
+            )
+
+            if (dataResponse.ok) {
+              const data = await dataResponse.json()
+              setGscMetrics(data.metrics)
+              setGscTimeSeries(data.timeSeries)
+              setGscTopPages(data.topPages)
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching GSC data:', error)
+        } finally {
+          setLoadingGSC(false)
+        }
+      }
+
+      fetchGSCData()
     }
   }, [user])
 
@@ -55,11 +99,21 @@ export default function Page() {
             <div className="flex flex-1 flex-col">
               <div className="@container/main flex flex-1 flex-col gap-2">
                 <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                  <SectionCards />
+                  <SectionCards
+                    gscMetrics={gscMetrics}
+                    hasGSCConnection={hasGSCConnection}
+                    loadingGSC={loadingGSC}
+                  />
                   <div className="px-4 lg:px-6">
-                    <ChartAreaInteractive />
+                    <ChartAreaInteractive
+                      gscTimeSeries={gscTimeSeries}
+                      hasGSCConnection={hasGSCConnection}
+                    />
                   </div>
-                  <DataTable data={data} />
+                  <DataTable
+                    data={hasGSCConnection && gscTopPages.length > 0 ? gscTopPages : data}
+                    isGSCData={hasGSCConnection && gscTopPages.length > 0}
+                  />
                 </div>
               </div>
             </div>

@@ -232,8 +232,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
-                    window.open('https://search.google.com/search-console', '_blank')
-                    onOpenChange(false)
+                    window.location.href = '/api/gsc/auth'
                   }}
                 >
                   Google Search Console verbinden
