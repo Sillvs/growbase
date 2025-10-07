@@ -9,11 +9,13 @@ import { GrowbaseLogo } from "@/components/growbase-logo"
 import { useAuth } from "@/hooks/use-auth"
 import { useState } from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter()
   const { signInWithEmail, signInWithGoogle } = useAuth()
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
@@ -26,6 +28,8 @@ export function LoginForm({
       setLoading(true)
       setError("")
       await signInWithEmail(email, password)
+      // Redirect to dashboard on successful login
+      router.push('/dashboard')
     } catch (error: unknown) {
       console.error('Error signing in:', error)
       setError(error instanceof Error ? error.message : 'Anmeldung fehlgeschlagen')
@@ -135,7 +139,7 @@ export function LoginForm({
           </form>
           <div className="bg-muted relative hidden md:block">
             <Image
-              src="https://images.pexels.com/photos/355288/pexels-photo-355288.jpeg"
+              src="/login-bg.jpeg"
               alt="Login Bild"
               fill
               className="object-cover dark:brightness-[0.2] dark:grayscale"

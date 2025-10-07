@@ -151,7 +151,7 @@ export function SignupForm({
           </form>
           <div className="bg-muted relative hidden md:block">
             <Image
-              src="https://images.pexels.com/photos/355288/pexels-photo-355288.jpeg"
+              src="/login-bg.jpeg"
               alt="Registrierung Bild"
               fill
               className="object-cover dark:brightness-[0.2] dark:grayscale"

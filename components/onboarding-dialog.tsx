@@ -119,7 +119,7 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
       <DialogContent className="gap-0 p-0 [&>button:last-child]:hidden">
         <div className="p-2">
           <Image
-            src="https://images.pexels.com/photos/355288/pexels-photo-355288.jpeg"
+            src="/onboarding-bg.jpeg"
             alt="Onboarding"
             width={382}
             height={216}
