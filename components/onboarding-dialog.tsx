@@ -64,12 +64,16 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
 
     setLoading(true)
     try {
-      // Create empty row in Supabase Company_DNA table (only user_id)
+      // Create row in Supabase Company_DNA table with all form data
       const { supabase } = await import("@/lib/supabase")
       const { data: insertData, error: supabaseError } = await supabase
         .from('company_dna')
         .insert({
-          user_id: user.id
+          user_id: user.id,
+          company_name: formData.companyName,
+          company_website: formData.companyWebsite,
+          target_market: formData.targetMarket,
+          target_language: formData.targetLanguage
         })
         .select()
 
@@ -123,8 +127,8 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
   }
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="gap-0 p-0 [&>button:last-child]:hidden">
+    <Dialog open={open} onOpenChange={step === 4 ? onOpenChange : () => {}}>
+      <DialogContent className={`gap-0 p-0 ${step === 4 ? '' : '[&>button:last-child]:hidden'}`}>
         <div className="p-2">
           <Image
             src="/onboarding-bg.jpeg"
@@ -216,64 +220,64 @@ export function OnboardingDialog({ open, onOpenChange }: OnboardingDialogProps) 
           )}
 
           {step === 4 && (
-            <div className="space-y-4 text-left">
+            <div className="space-y-6 text-left">
               <p className="text-sm text-muted-foreground">
                 Wir bereiten im Hintergrund alles für Sie vor. In der Zwischenzeit können Sie aber gerne schon mal Ihre Google Search Console verbinden.
               </p>
               <p className="text-xs text-muted-foreground font-medium">
                 Frei nach dem Motto: &quot;Man kann nicht verbessern, was man nicht messen kann.&quot;
               </p>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    window.open('https://search.google.com/search-console', '_blank')
+                    onOpenChange(false)
+                  }}
+                >
+                  Google Search Console verbinden
+                </Button>
+              </div>
             </div>
           )}
 
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="flex justify-center space-x-1.5 max-sm:order-1">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    i <= step ? "bg-primary" : "bg-primary/20"
-                  }`}
-                />
-              ))}
-            </div>
-            <div className="flex gap-2">
-              {step > 1 && step < 4 && (
-                <Button variant="ghost" onClick={() => setStep(step - 1)}>
-                  Zurück
-                </Button>
-              )}
-              {step === 4 ? (
-                <>
-                  <Button variant="ghost" onClick={() => onOpenChange(false)}>
-                    Zum Dashboard
+          {step !== 4 && (
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex justify-center space-x-1.5 max-sm:order-1">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      i <= step ? "bg-primary" : "bg-primary/20"
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                {step > 1 && (
+                  <Button variant="ghost" onClick={() => setStep(step - 1)}>
+                    Zurück
                   </Button>
+                )}
+                {step < 3 ? (
                   <Button
-                    onClick={() => {
-                      window.open('https://search.google.com/search-console', '_blank')
-                      onOpenChange(false)
-                    }}
+                    onClick={() => setStep(step + 1)}
+                    disabled={!canProceed()}
                   >
-                    Google Search Console verbinden
+                    Weiter
                   </Button>
-                </>
-              ) : step < 3 ? (
-                <Button
-                  onClick={() => setStep(step + 1)}
-                  disabled={!canProceed()}
-                >
-                  Weiter
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!canProceed() || loading}
-                >
-                  {loading ? "Wird gespeichert..." : "Weiter"}
-                </Button>
-              )}
+                ) : (
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!canProceed() || loading}
+                  >
+                    {loading ? "Wird gespeichert..." : "Weiter"}
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
